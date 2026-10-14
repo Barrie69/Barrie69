@@ -52,32 +52,37 @@ def picture():
     return card - sun - hills
 
 
-BIRD_COLORS = {"Y": (255, 214, 0), "y": (226, 168, 0), "W": (255, 255, 255), "B": (20, 20, 20),
-               "O": (255, 120, 40), "o": (214, 84, 20)}
-BIRD = """
+SCENE_COLORS = {
+    "Y": (255, 214, 0), "y": (214, 158, 0), "W": (255, 255, 255), "B": (20, 20, 20),
+    "O": (255, 120, 40), "o": (204, 80, 20),
+    "C": (70, 150, 50), "c": (40, 108, 34), "k": (118, 192, 72),
+    "G": (98, 172, 52), "g": (72, 140, 40), "D": (134, 96, 67), "d": (106, 74, 50),
+}
+# Minecraft-Flappy Bird: gele vogel, cactus als buis, grasblok als bodem.
+FLAPPY = """
 ................
-................
-................
-......YYYY......
-.....YYYYWWW....
-....YYYYWWBW....
-...YYYYYWWBW....
-..yyyyYYYWWW....
-..yWWWyYYYOOOO..
-..yyyyYYYOoooo..
-...YYYYYYYOOO...
-....YYYYYYY.....
-......YYYY......
-................
-................
+...........cCk..
+...........cCk..
+...........cCk..
+...YYYY.........
+..YYYWWW........
+.YYYYWBW........
+.yyyYWWW........
+.yWWyYOOO.......
+.yyyYYooo..cCk..
+..YYYYOO...cCk..
+...YYYY....cCk..
+...........cCk..
+.GgGGGgGGgGGGgG.
+.DdDDDdDDDDdDDd.
 ................
 """
 
 
-def bird():
-    """Gekleurde vogel (Flappy Bird): wit was op 16x16 niet herkenbaar."""
-    lines = BIRD.strip().splitlines()
-    return {(x, y): BIRD_COLORS[ch] for y, line in enumerate(lines) for x, ch in enumerate(line) if ch != "."}
+def flappy():
+    """Gekleurde scène in plaats van een wit symbool: een wit vogeltje is op 16x16 niet herkenbaar."""
+    lines = FLAPPY.strip("\n").splitlines()
+    return {(x, y): SCENE_COLORS[ch] for y, line in enumerate(lines) for x, ch in enumerate(line) if ch != "."}
 
 
 def render(glyph, pal, seed):
@@ -124,7 +129,7 @@ ORANGE = palette(255, 149, 0)
 SKY = palette(78, 192, 202)
 
 ICONS = [("phone", handset(), GREEN), ("settings", gear(), GRAY), ("messages", bubble(), BLUE),
-         ("camera", camera(), CHARCOAL), ("gallery", picture(), ORANGE), ("flappy", bird(), SKY)]
+         ("camera", camera(), CHARCOAL), ("gallery", picture(), ORANGE), ("flappy", flappy(), SKY)]
 
 for name, glyph, pal in ICONS:
     img = render(glyph, pal, name)

@@ -26,6 +26,32 @@ def gear():
     return pts - hole
 
 
+def rows(spec):
+    """{rij: [(van, tot), ...]} -> set van (x, y)."""
+    return {(x, y) for y, spans in spec.items() for a, b in spans for x in range(a, b + 1)}
+
+
+def bubble():
+    return rows({3: [(4, 11)], 4: [(3, 12)], 5: [(2, 13)], 6: [(2, 13)], 7: [(2, 13)], 8: [(2, 13)],
+                 9: [(3, 12)], 10: [(3, 11)], 11: [(3, 5)], 12: [(2, 3)]})
+
+
+def camera():
+    body = rows({3: [(3, 6)], 4: [(2, 13)], 5: [(2, 13)], 6: [(2, 13)], 7: [(2, 13)], 8: [(2, 13)],
+                 9: [(2, 13)], 10: [(2, 13)], 11: [(2, 13)], 12: [(3, 12)]})
+    lens = rows({6: [(6, 9)], 7: [(5, 10)], 8: [(5, 10)], 9: [(5, 10)], 10: [(5, 10)], 11: [(6, 9)]})
+    core = rows({8: [(7, 8)], 9: [(7, 8)]})
+    flash = {(11, 5), (12, 5)}
+    return (body - lens - flash) | core
+
+
+def picture():
+    card = rows({y: [(2, 13)] for y in range(3, 13)})
+    sun = rows({5: [(9, 10)], 6: [(9, 10)]})
+    hills = rows({7: [(5, 5)], 8: [(4, 6)], 9: [(3, 7), (10, 10)], 10: [(3, 12)], 11: [(3, 12)]})
+    return card - sun - hills
+
+
 def render(glyph, pal, seed):
     rnd = random.Random(seed)
     img = Image.new("RGBA", (N, N))
@@ -52,7 +78,24 @@ GREEN = dict(base=(52, 199, 89), dark=(46, 186, 82), light=(60, 210, 98),
 GRAY = dict(base=(142, 142, 147), dark=(133, 133, 138), light=(152, 152, 157),
             edge_hi=(175, 175, 180), edge_lo=(112, 112, 117), shadow=(92, 92, 97))
 
-for name, glyph, pal in [("phone", handset(), GREEN), ("settings", gear(), GRAY)]:
+
+
+def palette(r, g, b):
+    def mul(f):
+        return tuple(max(0, min(255, round(v * f))) for v in (r, g, b))
+
+    hi = tuple(round(v + (255 - v) * 0.3) for v in (r, g, b))
+    return dict(base=(r, g, b), dark=mul(0.94), light=mul(1.06), edge_hi=hi, edge_lo=mul(0.8), shadow=mul(0.64))
+
+
+BLUE = palette(10, 132, 255)
+CHARCOAL = palette(72, 72, 78)
+ORANGE = palette(255, 149, 0)
+
+ICONS = [("phone", handset(), GREEN), ("settings", gear(), GRAY), ("messages", bubble(), BLUE),
+         ("camera", camera(), CHARCOAL), ("gallery", picture(), ORANGE)]
+
+for name, glyph, pal in ICONS:
     img = render(glyph, pal, name)
     img.save(f"{name}@16.png")
     img.resize((128, 128), Image.NEAREST).save(f"{name}.png")

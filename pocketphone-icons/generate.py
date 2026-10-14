@@ -52,6 +52,34 @@ def picture():
     return card - sun - hills
 
 
+BIRD_COLORS = {"Y": (255, 214, 0), "y": (226, 168, 0), "W": (255, 255, 255), "B": (20, 20, 20),
+               "O": (255, 120, 40), "o": (214, 84, 20)}
+BIRD = """
+................
+................
+................
+......YYYY......
+.....YYYYWWW....
+....YYYYWWBW....
+...YYYYYWWBW....
+..yyyyYYYWWW....
+..yWWWyYYYOOOO..
+..yyyyYYYOoooo..
+...YYYYYYYOOO...
+....YYYYYYY.....
+......YYYY......
+................
+................
+................
+"""
+
+
+def bird():
+    """Gekleurde vogel (Flappy Bird): wit was op 16x16 niet herkenbaar."""
+    lines = BIRD.strip().splitlines()
+    return {(x, y): BIRD_COLORS[ch] for y, line in enumerate(lines) for x, ch in enumerate(line) if ch != "."}
+
+
 def render(glyph, pal, seed):
     rnd = random.Random(seed)
     img = Image.new("RGBA", (N, N))
@@ -64,7 +92,9 @@ def render(glyph, pal, seed):
                 c = pal["edge_lo"]
             if (x, y - 1) in glyph and (x, y) not in glyph:
                 c = pal["shadow"]
-            if (x, y) in glyph:
+            if isinstance(glyph, dict) and (x, y) in glyph:
+                c = glyph[(x, y)]
+            elif (x, y) in glyph:
                 if (x, y + 1) not in glyph:
                     c = (208, 208, 214)
                 else:
@@ -91,9 +121,10 @@ def palette(r, g, b):
 BLUE = palette(10, 132, 255)
 CHARCOAL = palette(72, 72, 78)
 ORANGE = palette(255, 149, 0)
+SKY = palette(78, 192, 202)
 
 ICONS = [("phone", handset(), GREEN), ("settings", gear(), GRAY), ("messages", bubble(), BLUE),
-         ("camera", camera(), CHARCOAL), ("gallery", picture(), ORANGE)]
+         ("camera", camera(), CHARCOAL), ("gallery", picture(), ORANGE), ("flappy", bird(), SKY)]
 
 for name, glyph, pal in ICONS:
     img = render(glyph, pal, name)

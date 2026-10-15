@@ -85,11 +85,33 @@ def flappy():
     return {(x, y): SCENE_COLORS[ch] for y, line in enumerate(lines) for x, ch in enumerate(line) if ch != "."}
 
 
-def render(glyph, pal, seed):
+
+def gram_glyph():
+    """Instagram-achtige camera: afgerond vierkant, lens en stipje rechtsboven."""
+    frame = rows({2: [(3, 12)], **{y: [(2, 2), (13, 13)] for y in range(3, 13)}, 13: [(3, 12)]})
+    lens = rows({5: [(6, 9)], **{y: [(5, 5), (10, 10)] for y in range(6, 10)}, 10: [(6, 9)]})
+    return frame | lens | {(11, 4)}
+
+
+GRAM_STOPS = [(250, 126, 30), (214, 41, 118), (150, 47, 191)]
+
+
+def gram_palette(x, y):
+    """Verloop van oranje (linksonder) via roze naar paars (rechtsboven)."""
+    t = (x + (N - 1 - y)) / (2 * (N - 1)) * (len(GRAM_STOPS) - 1)
+    i = min(int(t), len(GRAM_STOPS) - 2)
+    f = t - i
+    a, b = GRAM_STOPS[i], GRAM_STOPS[i + 1]
+    return palette(*(round(p + (q - p) * f) for p, q in zip(a, b)))
+
+def render(glyph, pal, seed, thin=False):
+    """thin=True: lijnen van 1 pixel blijven wit (anders zou de onderrand-tint ze grijs maken)."""
     rnd = random.Random(seed)
     img = Image.new("RGBA", (N, N))
+    base_pal = pal
     for y in range(N):
         for x in range(N):
+            pal = base_pal(x, y) if callable(base_pal) else base_pal
             c = rnd.choice([pal["base"]] * 3 + [pal["dark"], pal["light"]])
             if x == 0 or y == 0:
                 c = pal["edge_hi"]
@@ -100,7 +122,7 @@ def render(glyph, pal, seed):
             if isinstance(glyph, dict) and (x, y) in glyph:
                 c = glyph[(x, y)]
             elif (x, y) in glyph:
-                if (x, y + 1) not in glyph:
+                if (x, y + 1) not in glyph and not (thin and (x, y - 1) not in glyph):
                     c = (208, 208, 214)
                 else:
                     c = (255, 255, 255)
@@ -129,10 +151,12 @@ ORANGE = palette(255, 149, 0)
 SKY = palette(78, 192, 202)
 
 ICONS = [("phone", handset(), GREEN), ("settings", gear(), GRAY), ("messages", bubble(), BLUE),
-         ("camera", camera(), CHARCOAL), ("gallery", picture(), ORANGE), ("flappy", flappy(), SKY)]
+         ("camera", camera(), CHARCOAL), ("gallery", picture(), ORANGE), ("flappy", flappy(), SKY), ("gram", gram_glyph(), gram_palette)]
+
+THIN = {"gram"}
 
 for name, glyph, pal in ICONS:
-    img = render(glyph, pal, name)
+    img = render(glyph, pal, name, thin=name in THIN)
     img.save(f"{name}@16.png")
     img.resize((128, 128), Image.NEAREST).save(f"{name}.png")
     img.resize((512, 512), Image.NEAREST).save(f"{name}@512.png")
